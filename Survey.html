@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Social Media Usage Survey</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .survey-container {
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 600px;
+    }
+
+    h1, h3 {
+      text-align: center;
+      color: #333;
+    }
+
+    label {
+      font-size: 16px;
+      margin-top: 10px;
+      display: block;
+    }
+
+    select, button {
+      margin-top: 10px;
+      display: block;
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #backToTop {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #backToTop:hover {
+      background-color: #0056b3;
+    }
+
+    .result, .poll-item {
+      margin-top: 20px;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+    }
+
+    .result {
+      color: #d9534f;
+      background-color: #f2dede;
+      border: 1px solid #ebccd1;
+    }
+
+    .success {
+      color: #3c763d;
+      background-color: #dff0d8;
+      border: 1px solid #d6e9c6;
+    }
+
+    .poll-item {
+      background-color: #eef2f5;
+      border: 1px solid #ddd;
+    }
+
+    .guidelines {
+      font-size: 14px;
+      margin-top: 15px;
+      color: #555;
+      background: #e9f7fc;
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    .survey-list, .poll-container {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #eef2f5;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="survey-container">
+    <h1>Social Media Usage Survey</h1>
+    <form id="surveyForm">
+      <label for="userType">Are you a:</label>
+      <select id="userType" required>
+        <option value="">Select</option>
+        <option value="child">Child (2-5)</option>
+        <option value="teen">Teen (5-17)</option>
+        <option value="adult">Adult</option>
+      </select>
+
+      <label>How much time do you spend on the following apps per day?</label>
+      <div>
+        <label>Instagram:</label>
+        <select class="app-time" data-app="Instagram" required>
+          <option value="0">0 hrs</option>
+          <option value="2">2 hrs</option>
+          <option value="3">3 hrs</option>
+          <option value="4">4+ hrs</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Facebook:</label>
+        <select class="app-time" data-app="Facebook" required>
+          <option value="0">0 hrs</option>
+          <option value="2">2 hrs</option>
+          <option value="3">3 hrs</option>
+          <option value="4">4+ hrs</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Snapchat:</label>
+        <select class="app-time" data-app="Snapchat" required>
+          <option value="0">0 hrs</option>
+          <option value="2">2 hrs</option>
+          <option value="3">3 hrs</option>
+          <option value="4">4+ hrs</option>
+        </select>
+      </div>
+
+      <div>
+        <label>YouTube:</label>
+        <select class="app-time" data-app="YouTube" required>
+          <option value="0">0 hrs</option>
+          <option value="2">2 hrs</option>
+          <option value="3">3 hrs</option>
+          <option value="4">4+ hrs</option>
+        </select>
+      </div>
+
+      <button type="button" onclick="calculateScreenTime()">Submit</button>
+      <div id="result" class="result" style="display: none;"></div>
+      <div class="guidelines">
+        <h3>Screen Time Guidelines:</h3>
+        <p>
+          - <strong>Healthy Screen Time:</strong> Up to 8 hours per day.<br>
+          For more information, please visit the <a href="https://www.canada.ca/en/public-health/services/publications/healthy-living/screen-time-nobodys-perfect.html" target="_blank">Canadian Public Health Guidelines on Screen Time</a>.
+        </p>
+      </div>
+    </form>
+
+    <button id="backToTop" onclick="scrollToTop()">Back to Top</button>
+
+    <div class="survey-list" id="surveyList">
+      <h3>Previous Survey Submissions:</h3>
+    </div>
+
+    <div class="poll-container" id="pollContainer">
+      <h3>Time Spent on Each Application (Total Across Submissions):</h3>
+      <div id="poll"></div>
+    </div>
+  </div>
+
+  <script>
+    const surveyList = [];
+    const pollData = {
+      Instagram: 0,
+      Facebook: 0,
+      Snapchat: 0,
+      YouTube: 0
+    };
+
+    function calculateScreenTime() {
+      const userType = document.getElementById('userType').value;
+      const appTimes = document.querySelectorAll('.app-time');
+      let totalScreenTime = 0;
+
+      appTimes.forEach(select => {
+        const selectedValue = select.value === '4' ? 4 : parseInt(select.value);
+        pollData[select.dataset.app] += selectedValue;
+        totalScreenTime += selectedValue;
+      });
+
+      const limit = 8;
+
+      const resultDiv = document.getElementById('result');
+      const message = totalScreenTime > limit ?
+        `Warning! Your daily screen time of ${totalScreenTime} hrs exceeds the recommended healthy limit of ${limit} hrs.` :
+        `Good job! Your daily screen time of ${totalScreenTime} hrs is within the healthy limit of ${limit} hrs.`;
+
+      resultDiv.className = totalScreenTime > limit ? 'result' : 'result success';
+      resultDiv.innerHTML = message;
+      resultDiv.style.display = 'block';
+
+      storeSurveyResult(userType, totalScreenTime, message);
+      updatePoll();
+
+      document.getElementById('backToTop').style.display = 'block'; // Show Back to Top button
+
+      window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+
+    function scrollToTop() {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+
+    function storeSurveyResult(userType, totalScreenTime, message) {
+      const surveyData = {
+        userType,
+        totalScreenTime,
+        message
+      };
+
+      surveyList.push(surveyData);
+      displaySurveyResults();
+    }
+
+    function displaySurveyResults() {
+      const surveyListDiv = document.getElementById('surveyList');
+      surveyListDiv.innerHTML = '<h3>Previous Survey Submissions:</h3>';
+
+      surveyList.forEach((survey, index) => {
+        const surveyItem = document.createElement('div');
+        surveyItem.className = 'poll-item';
+        surveyItem.innerHTML = `<strong>Survey ${index + 1}</strong>:<br> 
+        User Type: ${survey.userType} <br> 
+        Total Screen Time: ${survey.totalScreenTime} hrs <br> 
+        ${survey.message}`;
+        surveyListDiv.appendChild(surveyItem);
+      });
+    }
+
+    function updatePoll() {
+      const pollDiv = document.getElementById('poll');
+      pollDiv.innerHTML = '';
+      Object.keys(pollData).forEach(app => {
+        const pollItem = document.createElement('div');
+        pollItem.className = 'poll-item';
+        pollItem.innerHTML = `<strong>${app}</strong>: ${pollData[app]} hrs total`;
+        pollDiv.appendChild(pollItem);
+      });
+    }
+  </script>
+</body>
+</html>
